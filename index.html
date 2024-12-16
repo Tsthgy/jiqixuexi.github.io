@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Reminder App Frontend</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+        }
+        .container {
+      background-color: #fff;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      border-radius: 5px;
+      padding: 20px;
+      width: 400px;
+      margin: 50px auto;
+    }
+
+        form {
+            background-color: #f4f4f4;
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        input[type="datetime-local"] {
+            width: 100%;
+            padding: 8px;
+            margin-bottom: 15px;
+            border: 1px solid #ccc;
+            border-radius: 3px;
+        }
+
+        input[type="submit"] {
+            background-color: #007BFF;
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 3px;
+            cursor: pointer;
+        }
+
+        #predictedTime {
+            margin-top: 15px;
+            padding: 10px;
+            border-radius: 3px;
+            font-weight: bold;
+        }
+
+      .checkbox-group {
+            margin-bottom: 15px;
+        }
+
+      .checkbox-group label {
+            display: inline-block;
+            margin-right: 10px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h2>提醒设置</h2>
+        <form id="reminderForm">
+            <div class="checkbox-group">
+                <input type="checkbox" id="event1" name="event" value="吃药">
+                <label for="event1">吃药</label>
+            </div>
+            <div class="checkbox-group">
+                <input type="checkbox" id="event2" name="event" value="锻炼">
+                <label for="event2">锻炼</label>
+            </div>
+            <label for="reminder_time">提醒时间:</label>
+            <input type="datetime-local" id="reminder_time" name="reminder_time" required><br><br>
+            <input type="submit" value="设置">
+        </form>
+    
+        <div id="predictedTime"></div>
+    </div>
+   
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const reminderForm = document.getElementById('reminderForm');
+            const predictedTimeDiv = document.getElementById('predictedTime');
+
+            reminderForm.addEventListener('submit', function (e) {
+                e.preventDefault();
+                const formData = new FormData(reminderForm);
+                const eventCheckboxes = document.querySelectorAll('input[type="checkbox"]:checked');
+                if (eventCheckboxes.length === 0) {
+                    alert('请选择一个事件');
+                    return;
+                }
+                const event = eventCheckboxes[0].value;
+                formData.set('event', event);
+
+                fetch('http://127.0.0.1:5003/', {  // 根据实际后端运行地址修改这里，如果后端在其他域名或端口，要对应修改
+                    method: 'POST',
+                    body: formData
+                })
+                 .then(response => response.json())
+                 .then(data => {
+                        if (data.predicted_next_reminder_time) {
+                            predictedTimeDiv.textContent = '预测下次提醒时间为: ' + data.predicted_next_reminder_time;
+                        } else {
+                            predictedTimeDiv.textContent = '错误: ' + data.error;
+                        }
+                    })
+                 .catch(error => {
+                        console.error('错误:', error);
+                        predictedTimeDiv.textContent = '发生错误，请重试。';
+                    });
+            });
+        });
+    </script>
+</body>
+
+</html>
